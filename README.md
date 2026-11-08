@@ -30,6 +30,11 @@ Then load the extension:
 | Script | What it does |
 |---|---|
 | `npm run build` | Production build into `.output/chrome-mv3` |
+| `npm run build:dev` | Development build into `.output/chrome-mv3-dev`. The panel adds buttons to load sample data or clear all data. |
 | `npm run dev` | Dev build with hot reload (WXT also tries to launch a browser) |
 | `npm run compile` | TypeScript type check |
+| `npm test` | Unit tests (Vitest), once |
+| `npm run test:watch` | Unit tests, re-run on every change |
 | `npm run zip` | Package a zip for the store |
+
+The production and development builds load as two separate extensions, each with its own storage.
