@@ -12,7 +12,9 @@ export default defineConfig({
     // tabs: read the current tab's URL and title to save it, and find an
     // already-open tab with a saved URL. Chrome shows this at install as
     // "Read your browsing history".
-    permissions: ['sidePanel', 'storage', 'favicon', 'tabs'],
+    // contextMenus: the right-click "Save page to Tab Hoarders" entry. It
+    // adds no install warning.
+    permissions: ['sidePanel', 'storage', 'favicon', 'tabs', 'contextMenus'],
     // Declaring an action gives the extension a toolbar icon. The background
     // script makes a click on that icon open the side panel.
     action: { default_title: 'Open Tab Hoarders' },
