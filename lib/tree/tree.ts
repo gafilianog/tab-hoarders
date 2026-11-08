@@ -205,6 +205,56 @@ export function collectItems(tree: Tree, folderId: NodeId): ItemNode[] {
     .filter((node): node is ItemNode => node.type === 'item');
 }
 
+export function hasNode(tree: Tree, id: NodeId): boolean {
+  return Object.hasOwn(tree.nodes, id);
+}
+
+/** `id` if it names an existing folder, otherwise the root. */
+export function existingFolderOrRoot(tree: Tree, id: NodeId): NodeId {
+  return hasNode(tree, id) && getNode(tree, id).type === 'folder' ? id : ROOT_ID;
+}
+
+/** Expands a folder and every folder above it, so its contents are visible. */
+export function expandPath(tree: Tree, folderId: NodeId): Tree {
+  let result = tree;
+  let current: NodeId | null = getFolder(tree, folderId).id;
+  while (current !== null) {
+    result = setExpanded(result, current, true);
+    current = getNode(result, current).parentId;
+  }
+  return result;
+}
+
+export interface FolderEntry {
+  folder: FolderNode;
+  /** 0 for folders at the top level. */
+  depth: number;
+}
+
+/** Every folder except the root, top to bottom as displayed, including folders inside collapsed ones. */
+export function listFolders(tree: Tree): FolderEntry[] {
+  const out: FolderEntry[] = [];
+  const stack = [...getFolder(tree, ROOT_ID).childIds].reverse().map((id) => ({ id, depth: 0 }));
+  while (stack.length > 0) {
+    const { id, depth } = stack.pop()!;
+    const node = getNode(tree, id);
+    if (node.type !== 'folder') continue;
+    out.push({ folder: node, depth });
+    stack.push(...[...node.childIds].reverse().map((childId) => ({ id: childId, depth: depth + 1 })));
+  }
+  return out;
+}
+
+/**
+ * Puts a deleted item back, for Undo (PRD D9). It returns to its old folder
+ * and position if that folder still exists, otherwise to the end of the top level.
+ */
+export function reinsertItem(tree: Tree, item: ItemNode, index: number): Tree {
+  const parentId = existingFolderOrRoot(tree, item.parentId);
+  const data: NewItem = { id: item.id, url: item.url, title: item.title, createdAt: item.createdAt };
+  return parentId === item.parentId ? addItem(tree, parentId, data, index) : addItem(tree, parentId, data);
+}
+
 // --- helpers ---
 
 function cleanName(name: string): string {

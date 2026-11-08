@@ -1,12 +1,12 @@
 import { buildSampleTree } from '@/lib/dev/sample-tree';
 import { createEmptyTree } from '@/lib/tree/tree';
-import type { Tree } from '@/lib/tree/types';
+import type { UpdateTree } from './useTree';
 
 /**
  * Buttons for checking the UI by hand. App only renders this in development
  * builds (`npm run build:dev`), and the production build leaves it out.
  */
-export function DevTools({ update }: { update: (mutate: (tree: Tree) => Tree) => Promise<void> }) {
+export function DevTools({ update }: { update: UpdateTree }) {
   return (
     <section className="devtools" aria-label="Developer tools">
       <span className="devtools-title">Dev build</span>

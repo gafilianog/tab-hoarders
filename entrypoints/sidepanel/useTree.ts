@@ -12,6 +12,8 @@ export type TreeState =
   | { status: 'corrupt'; reason: string }
   | { status: 'failed'; message: string };
 
+export type UpdateTree = (mutate: (tree: Tree) => Tree) => Promise<boolean>;
+
 /**
  * Loads the tree once when the panel opens, and applies changes through the
  * repository. The panel shows whatever the last successful write returned.
@@ -32,7 +34,7 @@ export function useTree() {
         );
       },
       (error: unknown) => {
-        if (!cancelled) setState({ status: 'failed', message: describe(error) });
+        if (!cancelled) setState({ status: 'failed', message: describeError(error) });
       },
     );
     return () => {
@@ -40,20 +42,23 @@ export function useTree() {
     };
   }, []);
 
-  const update = useCallback(async (mutate: (tree: Tree) => Tree): Promise<void> => {
+  /** Resolves true if the change was saved, false if it failed (the error is shown). */
+  const update = useCallback<UpdateTree>(async (mutate) => {
     try {
       const tree = await repository.update(mutate);
       setState({ status: 'ready', tree });
       setActionError(null);
+      return true;
     } catch (error) {
       if (error instanceof CorruptTreeError) setState({ status: 'corrupt', reason: error.reason });
-      else setActionError(describe(error));
+      else setActionError(describeError(error));
+      return false;
     }
   }, []);
 
   return { state, actionError, update };
 }
 
-function describe(error: unknown): string {
+export function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }

@@ -1,12 +1,18 @@
 :root {
   color-scheme: light dark;
   --bg: #ffffff;
+  --surface: #ffffff;
   --fg: #1f1f1f;
   --muted: #5f6368;
-  --hover: rgba(0, 0, 0, 0.06);
-  --border: rgba(0, 0, 0, 0.12);
-  --focus: #1a73e8;
+  --hover: #f0f0f0;
+  --border: rgba(0, 0, 0, 0.14);
+  --accent: #1a73e8;
+  --on-accent: #ffffff;
   --danger: #b3261e;
+  --on-danger: #ffffff;
+  --toast-bg: #303134;
+  --toast-fg: #ffffff;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 13px;
   line-height: 1.4;
@@ -15,12 +21,18 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #202124;
+    --surface: #2d2e31;
     --fg: #e8eaed;
     --muted: #9aa0a6;
-    --hover: rgba(255, 255, 255, 0.08);
+    --hover: #323336;
     --border: rgba(255, 255, 255, 0.16);
-    --focus: #8ab4f8;
+    --accent: #8ab4f8;
+    --on-accent: #202124;
     --danger: #f2b8b5;
+    --on-danger: #601410;
+    --toast-bg: #e8eaed;
+    --toast-fg: #202124;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -34,8 +46,105 @@ p {
   margin: 0;
 }
 
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .panel {
-  padding: 6px 0;
+  /* Room for the toast, so it never hides the last row. */
+  padding: 0 0 56px;
+}
+
+/* Buttons */
+
+.button {
+  min-height: 28px;
+  padding: 3px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--hover);
+}
+
+.button.primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.button.danger {
+  border-color: transparent;
+  background: var(--danger);
+  color: var(--on-danger);
+  font-weight: 600;
+}
+
+.button.primary:hover,
+.button.danger:hover {
+  filter: brightness(1.08);
+}
+
+.icon-button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+/* Toolbar */
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.save-target {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+}
+
+.save-target select {
+  flex: 1;
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  text-overflow: ellipsis;
 }
 
 /* Tree */
@@ -46,34 +155,90 @@ p {
   padding: 0;
 }
 
+.panel > .tree {
+  padding-top: 4px;
+}
+
 .row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+.row:hover,
+.row:focus-within,
+.row.menu-open {
+  background: var(--hover);
+}
+
+.row-main {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 6px;
   box-sizing: border-box;
-  width: 100%;
+  min-width: 0;
   min-height: 28px;
   padding-right: 12px;
-  min-width: 0;
-}
-
-.row.folder {
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.row.folder:hover,
-.row.item:hover {
+.row-main:focus-visible {
+  outline-offset: -2px;
+}
+
+/* The "more" button floats over the end of the row, so it takes no room
+   from the title. It shows on hover, on keyboard focus, and while its menu is open. */
+.row-menu {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: var(--hover);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.row:hover .row-menu,
+.row:focus-within .row-menu,
+.row.menu-open .row-menu {
+  opacity: 1;
+}
+
+.row-menu:hover {
+  color: var(--fg);
+}
+
+.row.renaming {
+  gap: 6px;
+  box-sizing: border-box;
+  padding-right: 8px;
   background: var(--hover);
 }
 
-.row.folder:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: -2px;
+.rename {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
 }
 
 .chevron {
@@ -105,9 +270,135 @@ p {
   white-space: nowrap;
 }
 
-.empty-folder {
+.placeholder {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
   color: var(--muted);
   font-style: italic;
+}
+
+/* Row menu */
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+.menu {
+  position: fixed;
+  z-index: 11;
+  display: grid;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.menu-item {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--hover);
+  outline: none;
+}
+
+.menu-item.danger {
+  color: var(--danger);
+}
+
+/* Confirmation dialog */
+
+.dialog {
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dialog h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Toast */
+
+.toast-region {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 8px;
+  background: var(--toast-bg);
+  color: var(--toast-fg);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+
+.toast-message {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.toast-action,
+.toast-close {
+  flex: none;
+  min-height: 28px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.toast-action {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.toast-action:hover,
+.toast-close:hover {
+  background: rgba(127, 127, 127, 0.25);
 }
 
 /* Messages */
