@@ -1,0 +1,22 @@
+# Dependencies and build output
+node_modules
+.output
+.wxt
+stats.html
+stats-*.json
+web-ext.config.ts
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+# Kiro Crew machine-local lock file
+.kiro/settings/.kirocrew-cli-settings.lock
