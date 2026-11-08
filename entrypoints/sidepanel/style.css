@@ -163,7 +163,7 @@ p {
   padding: 0;
 }
 
-.panel > .tree {
+.tree-area > .tree {
   padding-top: 4px;
 }
 
@@ -399,6 +399,33 @@ p {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+}
+
+.field select {
+  min-height: 28px;
+  padding: 2px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+.hint {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  filter: none;
 }
 
 /* Toast */

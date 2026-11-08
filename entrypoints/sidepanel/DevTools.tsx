@@ -1,3 +1,4 @@
+import { buildLargeSampleTree } from '@/lib/dev/large-sample-tree';
 import { buildSampleTree } from '@/lib/dev/sample-tree';
 import { createEmptyTree } from '@/lib/tree/tree';
 import type { UpdateTree } from './useTree';
@@ -12,6 +13,9 @@ export function DevTools({ update }: { update: UpdateTree }) {
       <span className="devtools-title">Dev build</span>
       <button type="button" onClick={() => void update(() => buildSampleTree(Date.now()))}>
         Replace with sample data
+      </button>
+      <button type="button" onClick={() => void update(() => buildLargeSampleTree(Date.now()))}>
+        Replace with 1,000 pages
       </button>
       <button type="button" onClick={() => void update(() => createEmptyTree(Date.now()))}>
         Clear all data

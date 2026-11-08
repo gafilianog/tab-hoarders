@@ -1,8 +1,7 @@
 import { existingFolderOrRoot, listFolders } from '@/lib/tree/tree';
-import { ROOT_ID, type NodeId, type Tree } from '@/lib/tree/types';
+import type { NodeId, Tree } from '@/lib/tree/types';
+import { FolderOptions } from './FolderOptions';
 import { NewFolderIcon } from './icons';
-
-const INDENT = '\u00A0\u00A0\u00A0';
 
 /**
  * "Save tab" saves the current tab into the folder picked next to it (PRD
@@ -30,14 +29,9 @@ export function Toolbar({
         Save tab
       </button>
       <label className="save-target">
-        <span>to</span>
-        <select value={target} onChange={(event) => onChangeTarget(event.target.value)}>
-          <option value={ROOT_ID}>Top level</option>
-          {listFolders(tree).map(({ folder, depth }) => (
-            <option key={folder.id} value={folder.id}>
-              {INDENT.repeat(depth + 1) + folder.name}
-            </option>
-          ))}
+        <span aria-hidden="true">to</span>
+        <select aria-label="Folder to save into" value={target} onChange={(event) => onChangeTarget(event.target.value)}>
+          <FolderOptions entries={listFolders(tree)} />
         </select>
       </label>
       <button type="button" className="icon-button" aria-label="New folder" title="New folder" onClick={onNewFolder}>
