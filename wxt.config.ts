@@ -9,7 +9,10 @@ export default defineConfig({
     minimum_chrome_version: '114',
     // favicon: show each saved page's icon from the browser's own favicon
     // cache, so the extension never fetches icons from the network.
-    permissions: ['sidePanel', 'storage', 'favicon'],
+    // tabs: read the current tab's URL and title to save it, and find an
+    // already-open tab with a saved URL. Chrome shows this at install as
+    // "Read your browsing history".
+    permissions: ['sidePanel', 'storage', 'favicon', 'tabs'],
     // Declaring an action gives the extension a toolbar icon. The background
     // script makes a click on that icon open the side panel.
     action: { default_title: 'Open Tab Hoarders' },
