@@ -222,7 +222,7 @@ Smaller improvements noted in the M3 review, not a priority: Undo for folder del
 | M2 Read-only UI | Render the tree, expand/collapse, empty state. | FR-2, FR-3, FR-13, FR-14. **Passed 2026-11-08 (owner) in Chrome and Helium.** |
 | M3 Editing | Create, rename, delete, save current tab, open item. | FR-10 to FR-12, FR-20 to FR-24. **Passed 2026-11-08 (owner) in Chrome and Helium.** FR-23 matching relaxed to "same page" afterwards at the owner's request. |
 | M4 Organization | Drag and drop, multi-window sync. | FR-40 to FR-42, FR-5. **Passed 2026-11-08 (owner) in Chrome and Helium**, including live sync between two windows. |
-| M5 Open all and hardening | Open all, error states, performance pass, accessibility pass. | FR-30 to FR-33, NFR-1, NFR-5. |
+| M5 Open all and hardening | Open all, error states, performance pass, accessibility pass. | FR-30 to FR-33, NFR-1, NFR-5. **Passed 2026-11-08 (owner) in Chrome and Helium.** Also delivered P1 items FR-43 (keyboard navigation) and FR-44 (Move to…). FR-27 was not scheduled in any milestone and is still open. |
 
 ## 15. Test strategy (summary)
 
