@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { needsOpenAllConfirmation, openAll } from '@/lib/tabs/open-all';
 import { getCurrentPage, openOrFocus, type CurrentPage } from '@/lib/tabs/tab-actions';
 import {
   addFolder,
   addItem,
+  collectItems,
   countDescendants,
   existingFolderOrRoot,
   expandPath,
   getFolder,
   getNode,
   hasNode,
+  moveNode,
   reinsertItem,
   removeNode,
   renameNode,
@@ -17,8 +20,9 @@ import {
 import { ROOT_ID, type FolderNode, type ItemNode, type NodeId, type Tree, type TreeNode } from '@/lib/tree/types';
 import { ConfirmDialog } from './ConfirmDialog';
 import { DevTools } from './DevTools';
+import { MoveDialog } from './MoveDialog';
 import { RowMenu, type MenuEntry } from './RowMenu';
-import { describeFolderContents } from './text';
+import { describeFolderContents, describeOpenAllResult } from './text';
 import { ToastRegion, useToast } from './Toast';
 import { Toolbar } from './Toolbar';
 import { TreeView, type MenuRequest, type TreeActions } from './TreeView';
@@ -35,9 +39,13 @@ export default function App() {
   const [renamingId, setRenamingId] = useState<NodeId | null>(null);
   const [menu, setMenu] = useState<MenuRequest | null>(null);
   const [pendingDelete, setPendingDelete] = useState<FolderNode | null>(null);
+  const [pendingOpenAll, setPendingOpenAll] = useState<{ folder: FolderNode; urls: string[] } | null>(null);
+  const [movingId, setMovingId] = useState<NodeId | null>(null);
 
   const tree = state.status === 'ready' ? state.tree : null;
   const dnd = useDragAndDrop(tree, update);
+  // Another window may delete the row while its dialog is open here.
+  const movingNode = movingId !== null && tree && hasNode(tree, movingId) ? getNode(tree, movingId) : null;
 
   // Each change reads the latest stored tree inside `update`, not the
   // rendered one, so quick repeated clicks never act on stale data.
@@ -144,13 +152,53 @@ export default function App() {
     if (folder) void update((t) => (hasNode(t, folder.id) ? removeNode(t, folder.id) : t));
   };
 
+  /** FR-30, FR-31, FR-33: every page in the folder and its subfolders, as background tabs. */
+  const runOpenAll = (urls: string[]) => {
+    openAll(browser.tabs, urls).then(
+      (result) => showToast({ message: describeOpenAllResult(result) }),
+      (error: unknown) => showToast({ message: `Couldn't open the pages: ${describeError(error)}` }),
+    );
+  };
+
+  /** FR-32 / D8: more than 20 tabs asks first. */
+  const requestOpenAll = (folder: FolderNode) => {
+    if (!tree || !hasNode(tree, folder.id)) return;
+    const urls = collectItems(tree, folder.id).map((item) => item.url);
+    if (urls.length === 0) {
+      showToast({ message: `"${folder.name}" has no saved pages to open.` });
+      return;
+    }
+    if (needsOpenAllConfirmation(urls.length)) setPendingOpenAll({ folder, urls });
+    else runOpenAll(urls);
+  };
+
+  const confirmOpenAll = () => {
+    const pending = pendingOpenAll;
+    setPendingOpenAll(null);
+    if (pending) runOpenAll(pending.urls);
+  };
+
+  /** FR-44: moves a row to the end of a folder without dragging. */
+  const moveTo = async (nodeId: NodeId, folderId: NodeId) => {
+    setMovingId(null);
+    const target = { name: '' };
+    const saved = await update((t) => {
+      const parent = existingFolderOrRoot(t, folderId);
+      target.name = parent === ROOT_ID ? 'the top level' : getFolder(t, parent).name;
+      return expandPath(moveNode(t, nodeId, parent), parent);
+    });
+    if (saved) showToast({ message: `Moved to ${target.name}` });
+  };
+
   const menuEntries = (node: TreeNode): MenuEntry[] => {
     const common: MenuEntry[] = [
+      { label: 'Move to…', run: () => setMovingId(node.id) },
       { label: 'Rename', run: () => setRenamingId(node.id) },
       { label: 'Delete', danger: true, run: () => requestDelete(node) },
     ];
     if (node.type === 'item') return common;
     return [
+      { label: 'Open all pages', run: () => requestOpenAll(node) },
       { label: 'Save current tab here', run: () => void saveCurrentTab(node.id) },
       { label: 'New folder inside', run: () => void createFolder(node.id) },
       ...common,
@@ -169,7 +217,9 @@ export default function App() {
     onToggle: toggleFolder,
     onOpen: openItem,
     onMenu: setMenu,
+    onStartRename: (node) => setRenamingId(node.id),
     onRenameDone: finishRename,
+    onDelete: requestDelete,
     dnd,
   };
 
@@ -211,6 +261,24 @@ export default function App() {
           confirmLabel="Delete folder"
           onConfirm={confirmFolderDelete}
           onCancel={() => setPendingDelete(null)}
+        />
+      )}
+      {pendingOpenAll && (
+        <ConfirmDialog
+          title={`Open ${pendingOpenAll.urls.length} tabs?`}
+          message={`Every page in "${pendingOpenAll.folder.name}" and its subfolders opens as a background tab in this window.`}
+          confirmLabel={`Open ${pendingOpenAll.urls.length} tabs`}
+          tone="primary"
+          onConfirm={confirmOpenAll}
+          onCancel={() => setPendingOpenAll(null)}
+        />
+      )}
+      {movingNode && tree && (
+        <MoveDialog
+          tree={tree}
+          node={movingNode}
+          onMove={(folderId) => void moveTo(movingNode.id, folderId)}
+          onCancel={() => setMovingId(null)}
         />
       )}
       <ToastRegion toast={toast} onDismiss={dismissToast} />

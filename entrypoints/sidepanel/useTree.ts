@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { createBrowserTreeRepository, watchStoredTree } from '@/lib/storage/browser-tree-repository';
 import { CorruptTreeError } from '@/lib/storage/tree-repository';
 import type { Tree } from '@/lib/tree/types';
+import { describeActionError } from './text';
 
 // One repository per panel page, so all writes from this panel share its queue.
 const repository = createBrowserTreeRepository();
@@ -67,7 +68,7 @@ export function useTree() {
       return true;
     } catch (error) {
       if (error instanceof CorruptTreeError) setState({ status: 'corrupt', reason: error.reason });
-      else setActionError(describeError(error));
+      else setActionError(describeActionError(error));
       return false;
     }
   }, []);
