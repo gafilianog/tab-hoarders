@@ -29,6 +29,17 @@ The tree is one Tab stop.
 | Delete or Backspace | Delete |
 | Shift+F10 | Open the row's menu |
 
+## Install from a release
+
+The extension is not in the Chrome Web Store, so it is loaded as an unpacked extension.
+
+1. Download `tab-hoarders-<version>-chrome.zip` from the [Releases page](https://github.com/gafilianog/tab-hoarders/releases) and unzip it into a folder you will keep. The browser loads the extension from that folder, so deleting it removes the extension.
+2. Open `chrome://extensions` (or `helium://extensions`) and turn on **Developer mode**.
+3. Click **Load unpacked** and choose the unzipped folder.
+4. Pin Tab Hoarders from the puzzle-piece menu and click its icon to open the panel.
+
+To update, unzip the new release over the same folder and click the reload icon on the extension's card. Your saved folders stay, because they are stored in the browser profile, not in that folder.
+
 ## Setup
 
 Requires Node.js 22 or newer (`.nvmrc` pins 26).
