@@ -52,10 +52,40 @@ describe('openOrFocus', () => {
     expect(calls).toEqual(['query {"currentWindow":true}', 'update 2 {"active":true}']);
   });
 
-  it('opens a new tab when no tab matches exactly', async () => {
-    const { api, calls } = fakeTabs([{ id: 1, url: 'https://example.com/a#section' }]);
+  it.each([
+    ['a #fragment on the open tab', 'https://example.com/a#section', 'https://example.com/a'],
+    ['a #fragment on the saved page', 'https://example.com/a', 'https://example.com/a#section'],
+    ['a trailing slash', 'https://example.com/a/', 'https://example.com/a'],
+    ['a missing trailing slash', 'https://example.com/a', 'https://example.com/a/'],
+    ['different letter case in the host', 'https://EXAMPLE.com/a', 'https://example.com/a'],
+  ])('treats %s as the same page (FR-23)', async (_case, openUrl, savedUrl) => {
+    const { api, calls } = fakeTabs([{ id: 7, url: openUrl }]);
+    expect(await openOrFocus(api, savedUrl)).toBe('focused');
+    expect(calls.at(-1)).toBe('update 7 {"active":true}');
+  });
+
+  it('prefers an exact match over another tab showing the same page', async () => {
+    const { api, calls } = fakeTabs([
+      { id: 1, url: 'https://example.com/a#top' },
+      { id: 2, url: 'https://example.com/a' },
+    ]);
+    await openOrFocus(api, 'https://example.com/a');
+    expect(calls.at(-1)).toBe('update 2 {"active":true}');
+  });
+
+  it.each([
+    ['a different query string', 'https://example.com/a?page=2'],
+    ['a different path', 'https://example.com/b'],
+    ['a different scheme', 'http://example.com/a'],
+  ])('opens a new tab when the open tab has %s', async (_case, openUrl) => {
+    const { api, calls } = fakeTabs([{ id: 1, url: openUrl }]);
     expect(await openOrFocus(api, 'https://example.com/a')).toBe('opened');
     expect(calls.at(-1)).toBe('create {"url":"https://example.com/a","active":true}');
+  });
+
+  it('ignores tabs without a URL or id', async () => {
+    const { api } = fakeTabs([{ id: 1 }, { url: 'https://example.com/a' }]);
+    expect(await openOrFocus(api, 'https://example.com/a')).toBe('opened');
   });
 
   it('refuses non-web URLs without touching any tab', async () => {
