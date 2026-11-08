@@ -9,6 +9,7 @@ import {
   getNode,
   hasNode,
   listFolders,
+  listMoveTargets,
   reinsertItem,
   removeNode,
   setExpanded,
@@ -87,6 +88,17 @@ describe('listFolders', () => {
 
   it('is empty for an empty tree', () => {
     expect(listFolders(createEmptyTree(T0))).toEqual([]);
+  });
+});
+
+describe('listMoveTargets (FR-44)', () => {
+  it('leaves out a folder and everything inside it', () => {
+    expect(listMoveTargets(sample(), 'a').map(({ folder }) => folder.id)).toEqual(['d']);
+    expect(listMoveTargets(sample(), 'b').map(({ folder }) => folder.id)).toEqual(['a', 'd']);
+  });
+
+  it('offers every folder for a page', () => {
+    expect(listMoveTargets(sample(), 'i1').map(({ folder }) => folder.id)).toEqual(['a', 'b', 'c', 'd']);
   });
 });
 

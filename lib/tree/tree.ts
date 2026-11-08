@@ -246,6 +246,15 @@ export function listFolders(tree: Tree): FolderEntry[] {
 }
 
 /**
+ * Folders a node can be moved into with "Move to…" (PRD FR-44): every folder
+ * except the node itself and its subfolders. The top level is always allowed
+ * too, but is not listed here.
+ */
+export function listMoveTargets(tree: Tree, nodeId: NodeId): FolderEntry[] {
+  return listFolders(tree).filter(({ folder }) => folder.id !== nodeId && !isAncestor(tree, nodeId, folder.id));
+}
+
+/**
  * Puts a deleted item back, for Undo (PRD D9). It returns to its old folder
  * and position if that folder still exists, otherwise to the end of the top level.
  */
