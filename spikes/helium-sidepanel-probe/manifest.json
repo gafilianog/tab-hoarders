@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "sidepanel-probe",
+  "version": "0.0.1",
+  "description": "Throwaway M0 probe: checks that the Side Panel API works in Helium.",
+  "permissions": ["sidePanel"],
+  "background": { "service_worker": "sw.js" },
+  "side_panel": { "default_path": "panel.html" },
+  "action": { "default_title": "Open side panel probe" }
+}
