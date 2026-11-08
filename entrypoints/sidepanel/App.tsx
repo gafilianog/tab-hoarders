@@ -22,6 +22,7 @@ import { describeFolderContents } from './text';
 import { ToastRegion, useToast } from './Toast';
 import { Toolbar } from './Toolbar';
 import { TreeView, type MenuRequest, type TreeActions } from './TreeView';
+import { useDragAndDrop } from './useDragAndDrop';
 import { useSaveTarget } from './useSaveTarget';
 import { describeError, useTree, type TreeState } from './useTree';
 
@@ -36,6 +37,7 @@ export default function App() {
   const [pendingDelete, setPendingDelete] = useState<FolderNode | null>(null);
 
   const tree = state.status === 'ready' ? state.tree : null;
+  const dnd = useDragAndDrop(tree, update);
 
   // Each change reads the latest stored tree inside `update`, not the
   // rendered one, so quick repeated clicks never act on stale data.
@@ -168,6 +170,7 @@ export default function App() {
     onOpen: openItem,
     onMenu: setMenu,
     onRenameDone: finishRename,
+    dnd,
   };
 
   return (
@@ -181,14 +184,19 @@ export default function App() {
           onNewFolder={() => void createFolder(ROOT_ID)}
         />
       )}
-      <Body state={state} actions={treeActions} />
+      {/* Fills the rest of the panel, so a drop below the last row goes to the end of the top level. */}
+      <div className="tree-area" {...dnd.area}>
+        <Body state={state} actions={treeActions} />
+        {dnd.endIndicated && <div className="drop-end" aria-hidden="true" />}
+      </div>
       {actionError && (
         <p className="error" role="alert">
           {actionError}
         </p>
       )}
       {import.meta.env.MODE === 'development' && tree && <DevTools update={update} />}
-      {menu && (
+      {/* Another window may delete the row while its menu is open here. */}
+      {menu && tree && hasNode(tree, menu.node.id) && (
         <RowMenu
           anchor={menu.anchor}
           label={`Actions for ${menu.node.type === 'folder' ? menu.node.name : menu.node.title}`}

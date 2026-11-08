@@ -98,7 +98,7 @@ Priority: **P0** = required for MVP, **P1** = desirable in MVP if cheap, **P2** 
 | FR-20 | "Save current tab" saves the active tab of the current window as an item in a chosen folder (default: last used folder, else root). | P0 |
 | FR-21 | An item stores URL, title, favicon reference, and creation time. | P0 |
 | FR-22 | Only `http:` and `https:` pages can be saved. Others (`chrome://`, `file://`, `about:`, `chrome-extension://`) show a clear "can't save this page" message. [D7] | P0 |
-| FR-23 | Clicking an item opens its URL. If a tab with the same URL is already open in the current window, focus it. Otherwise open a new tab. [D1] | P0 |
+| FR-23 | Clicking an item opens its URL. If a tab in the current window already shows the same page, focus it. Otherwise open a new tab. "Same page" means the same URL, ignoring the `#fragment` and a trailing slash; a different query string is a different page. An exact match is preferred when several tabs qualify. [D1] | P0 |
 | FR-24 | Rename an item (edits the stored title only). | P0 |
 | FR-25 | Delete an item without confirmation, with a visible Undo for a few seconds. | P1 |
 | FR-26 | The same URL may be saved multiple times, in any folders. [D5] | P0 |
@@ -183,6 +183,8 @@ Top-level record also holds `schemaVersion`. Storage: `chrome.storage.local`, ac
 
 Live tabs list, sync (optionally via `chrome.storage.sync` for small settings only, or a backend), import/export, search, tab groups, duplicate detection, keyboard shortcuts, multi-select, Chrome Web Store publishing assets.
 
+Smaller improvements noted in the M3 review, not a priority: Undo for folder deletes (empty folders currently delete without confirmation or Undo), pausing the Undo timer while hovered, and renaming by double-click or F2.
+
 ## 12. Decisions
 
 | # | Decision | Status |
@@ -218,8 +220,8 @@ Live tabs list, sync (optionally via `chrome.storage.sync` for small settings on
 | M0 Spike | Empty extension loads, side panel opens from the icon, a value persists in storage across restart. | Manual check on Chrome first, then Helium. Chrome: icon click opens the panel, panel width noted, storage persists across a browser restart. Helium: panel opening already verified (probe, 2026-11-08); repeat the same checks with the real extension. **Passed 2026-11-08 (owner) in Chrome and Helium:** icon opens the panel, panel is 360 px wide, the open counter kept rising after a full browser restart. |
 | M1 Tree core | Pure tree logic and repository, with unit tests. No UI yet. | Unit tests pass, including FR-15. **Met 2026-11-08:** 57 tests pass; owner approved the one-key storage layout. |
 | M2 Read-only UI | Render the tree, expand/collapse, empty state. | FR-2, FR-3, FR-13, FR-14. **Passed 2026-11-08 (owner) in Chrome and Helium.** |
-| M3 Editing | Create, rename, delete, save current tab, open item. | FR-10 to FR-12, FR-20 to FR-24. |
-| M4 Organization | Drag and drop, multi-window sync. | FR-40 to FR-42, FR-5. |
+| M3 Editing | Create, rename, delete, save current tab, open item. | FR-10 to FR-12, FR-20 to FR-24. **Passed 2026-11-08 (owner) in Chrome and Helium.** FR-23 matching relaxed to "same page" afterwards at the owner's request. |
+| M4 Organization | Drag and drop, multi-window sync. | FR-40 to FR-42, FR-5. **Passed 2026-11-08 (owner) in Chrome and Helium**, including live sync between two windows. |
 | M5 Open all and hardening | Open all, error states, performance pass, accessibility pass. | FR-30 to FR-33, NFR-1, NFR-5. |
 
 ## 15. Test strategy (summary)

@@ -52,8 +52,16 @@ p {
 }
 
 .panel {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100vh;
   /* Room for the toast, so it never hides the last row. */
   padding: 0 0 56px;
+}
+
+.tree-area {
+  flex: 1;
 }
 
 /* Buttons */
@@ -276,6 +284,50 @@ p {
   min-height: 28px;
   color: var(--muted);
   font-style: italic;
+}
+
+/* Drag and drop */
+
+.row.dragging {
+  opacity: 0.45;
+}
+
+/* A line before or after the row shows where the dragged row will land. */
+.row.drop-before::before,
+.row.drop-after::after,
+.drop-end {
+  content: '';
+  position: absolute;
+  right: 4px;
+  left: var(--drop-indent, 8px);
+  z-index: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.row.drop-before::before {
+  top: -1px;
+}
+
+.row.drop-after::after {
+  bottom: -1px;
+}
+
+.drop-end {
+  position: static;
+  margin: 2px 4px 0 8px;
+}
+
+.row.drop-inside {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.row.drop-blocked {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  cursor: not-allowed;
 }
 
 /* Row menu */

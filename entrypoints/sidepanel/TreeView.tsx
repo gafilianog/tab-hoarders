@@ -5,6 +5,7 @@ import { faviconUrl } from './favicon';
 import { ChevronIcon, FolderIcon, MoreIcon } from './icons';
 import { RenameInput } from './RenameInput';
 import type { Point } from './RowMenu';
+import type { DragAndDrop } from './useDragAndDrop';
 
 export interface MenuRequest {
   node: TreeNode;
@@ -20,11 +21,13 @@ export interface TreeActions {
   onOpen: (item: ItemNode) => void;
   onMenu: (request: MenuRequest) => void;
   onRenameDone: (node: TreeNode, value: string | null) => void;
+  dnd: DragAndDrop;
 }
 
 /**
  * Renders the tree as nested lists, so screen readers announce the nesting.
- * Every row has a "more" button and a right-click menu with its actions.
+ * Every row has a "more" button and a right-click menu with its actions, and
+ * can be dragged to move it.
  * Arrow-key navigation inside the tree (PRD FR-43) comes later.
  */
 export function TreeView({ tree, actions }: { tree: Tree; actions: TreeActions }) {
@@ -42,7 +45,7 @@ function ChildList({ tree, folderId, depth, actions }: { tree: Tree; folderId: N
             (node.childIds.length > 0 ? (
               <ChildList tree={tree} folderId={node.id} depth={depth + 1} actions={actions} />
             ) : (
-              <p className="placeholder" style={indent(depth + 1)}>
+              <p className="placeholder" style={indent(depth + 1)} {...actions.dnd.placeholder(node.id)}>
                 Empty folder
               </p>
             ))}
@@ -64,7 +67,8 @@ function NodeRow({ node, depth, actions }: { node: TreeNode; depth: number; acti
     ) : (
       <>
         <span className="chevron" aria-hidden="true" />
-        <img className="icon" src={faviconUrl(node.url)} alt="" width={16} height={16} />
+        {/* Not draggable on its own, so a drag that starts on the icon moves the whole row. */}
+        <img className="icon" src={faviconUrl(node.url)} alt="" width={16} height={16} draggable={false} />
       </>
     );
 
@@ -98,10 +102,21 @@ function NodeRow({ node, depth, actions }: { node: TreeNode; depth: number; acti
     actions.onOpen(item);
   };
 
+  const { dnd } = actions;
   const menuOpen = actions.menuNodeId === node.id;
+  const drop = dnd.indicatorFor(node.id);
+  const classes = ['row'];
+  if (menuOpen) classes.push('menu-open');
+  if (dnd.draggedId === node.id) classes.push('dragging');
+  if (drop) classes.push(`drop-${drop}`);
+
+  // A line drawn below an expanded folder with children sits above its
+  // first child, so it is indented one level deeper (see lib/tree/drop.ts).
+  const lineDepth = drop === 'after' && node.type === 'folder' && node.expanded && node.childIds.length > 0 ? depth + 1 : depth;
+  const rowStyle = { '--drop-indent': `${indentPx(lineDepth)}px` } as CSSProperties;
 
   return (
-    <div className={menuOpen ? 'row menu-open' : 'row'} onContextMenu={onContextMenu}>
+    <div className={classes.join(' ')} style={rowStyle} onContextMenu={onContextMenu} {...dnd.row(node)}>
       {node.type === 'folder' ? (
         <button
           type="button"
@@ -110,6 +125,7 @@ function NodeRow({ node, depth, actions }: { node: TreeNode; depth: number; acti
           aria-expanded={node.expanded}
           title={label}
           onClick={() => actions.onToggle(node)}
+          {...dnd.source(node)}
         >
           {icons}
           <span className="label">{label}</span>
@@ -121,6 +137,7 @@ function NodeRow({ node, depth, actions }: { node: TreeNode; depth: number; acti
           href={isSaveableUrl(node.url) ? node.url : undefined}
           title={`${label}\n${node.url}`}
           onClick={(event) => onItemClick(event, node)}
+          {...dnd.source(node)}
         >
           {icons}
           <span className="label">{label}</span>
@@ -144,6 +161,10 @@ function NodeRow({ node, depth, actions }: { node: TreeNode; depth: number; acti
 const INDENT_BASE_PX = 8;
 const INDENT_STEP_PX = 12;
 
+function indentPx(depth: number): number {
+  return INDENT_BASE_PX + depth * INDENT_STEP_PX;
+}
+
 function indent(depth: number): CSSProperties {
-  return { paddingLeft: INDENT_BASE_PX + depth * INDENT_STEP_PX };
+  return { paddingLeft: indentPx(depth) };
 }

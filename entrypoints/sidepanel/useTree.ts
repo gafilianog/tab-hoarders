@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createBrowserTreeRepository } from '@/lib/storage/browser-tree-repository';
+import { createBrowserTreeRepository, watchStoredTree } from '@/lib/storage/browser-tree-repository';
 import { CorruptTreeError } from '@/lib/storage/tree-repository';
 import type { Tree } from '@/lib/tree/types';
 
@@ -41,6 +41,22 @@ export function useTree() {
       cancelled = true;
     };
   }, []);
+
+  // Live updates (PRD FR-5): every write, from this panel or a panel in
+  // another window, fires a storage change event, and every panel shows the
+  // new tree. This panel's own writes also set the state directly below, so
+  // the UI doesn't wait for the event; both carry the same tree.
+  useEffect(
+    () =>
+      watchStoredTree((result) => {
+        setState(
+          result.status === 'ok'
+            ? { status: 'ready', tree: result.tree }
+            : { status: 'corrupt', reason: result.reason },
+        );
+      }),
+    [],
+  );
 
   /** Resolves true if the change was saved, false if it failed (the error is shown). */
   const update = useCallback<UpdateTree>(async (mutate) => {
