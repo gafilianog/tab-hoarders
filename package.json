@@ -2,7 +2,7 @@
   "name": "tab-hoarders",
   "description": "Arc-style nested folders of saved URLs in the browser side panel.",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "engines": {
     "node": ">=22"

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **v1.0, signed off by owner on 2026-11-08. Decisions D1-D11 approved.** |
+| Status | **v1.0, signed off by owner on 2026-11-08. Decisions D1-D11 approved. MVP complete 2026-11-08 (see section 16).** |
 | Owner | gafi |
 | Date | 2026-11-08 |
 | Platform | Chromium-based desktop browsers, Manifest V3 extension. **Google Chrome is the priority and build target.** Helium is the secondary browser (Side Panel verified). [D11] |
@@ -199,14 +199,14 @@ Smaller improvements noted in the M3 review, not a priority: Undo for folder del
 | D8 | Confirm before opening more than 20 tabs. | Approved |
 | D9 | Delete: folders confirm when non-empty, items use Undo instead of a dialog. | Approved |
 | D10 | MVP excludes the live open-tabs list. | Approved |
-| D11 | Browsers: **Google Chrome is the priority and build target.** **Helium** is the secondary browser and stays in scope. Edge was considered and dropped. Helium evidence: the owner ran the probe in `spikes/helium-sidepanel-probe` on 2026-11-08 and the panel opened at 360 px wide. Chrome has not yet been probed; it is checked in M0. | Approved |
+| D11 | Browsers: **Google Chrome is the priority and build target.** **Helium** is the secondary browser and stays in scope. Edge was considered and dropped. Helium evidence: the owner ran the probe in `spikes/helium-sidepanel-probe` on 2026-11-08 and the panel opened at 360 px wide. Chrome was verified in M0, also at 360 px. | Approved |
 
 ## 13. Risks
 
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Users expect Arc's tab-strip replacement and see two tab UIs | Disappointment | State the limitation in the store listing and first-run empty state. |
-| Nested drag-and-drop is hard to get right | Schedule and bugs | Use a proven library, write tree-move unit tests first. |
+| Nested drag-and-drop is hard to get right | Schedule and bugs | Built in M4 on the browser's own drag and drop, without a library. The drop rules are plain code with unit tests (`lib/tree/drop.ts`). |
 | Concurrent writes from multiple windows overwrite each other | Data loss | Single write path in the repository, re-read before write, covered by a test (NFR-2). |
 | Opening many tabs freezes the browser | Poor experience | Background opening, batching, confirmation (FR-31 to FR-33). |
 | Storage corruption after a bad migration | Data loss | Schema version, validation, non-destructive failure (FR-52, FR-53). |
@@ -222,7 +222,7 @@ Smaller improvements noted in the M3 review, not a priority: Undo for folder del
 | M2 Read-only UI | Render the tree, expand/collapse, empty state. | FR-2, FR-3, FR-13, FR-14. **Passed 2026-11-08 (owner) in Chrome and Helium.** |
 | M3 Editing | Create, rename, delete, save current tab, open item. | FR-10 to FR-12, FR-20 to FR-24. **Passed 2026-11-08 (owner) in Chrome and Helium.** FR-23 matching relaxed to "same page" afterwards at the owner's request. |
 | M4 Organization | Drag and drop, multi-window sync. | FR-40 to FR-42, FR-5. **Passed 2026-11-08 (owner) in Chrome and Helium**, including live sync between two windows. |
-| M5 Open all and hardening | Open all, error states, performance pass, accessibility pass. | FR-30 to FR-33, NFR-1, NFR-5. **Passed 2026-11-08 (owner) in Chrome and Helium.** Also delivered P1 items FR-43 (keyboard navigation) and FR-44 (Move to…). FR-27 was not scheduled in any milestone; it was built afterwards with the narrowed scope above, pending the owner's browser check. |
+| M5 Open all and hardening | Open all, error states, performance pass, accessibility pass. | FR-30 to FR-33, NFR-1, NFR-5. **Passed 2026-11-08 (owner) in Chrome and Helium.** Also delivered P1 items FR-43 (keyboard navigation) and FR-44 (Move to…). FR-27 was not scheduled in any milestone; it was built afterwards with the narrowed scope above and **passed 2026-11-08 (owner) in Chrome and Helium.** |
 
 ## 15. Test strategy (summary)
 
@@ -234,3 +234,18 @@ Smaller improvements noted in the M3 review, not a priority: Undo for folder del
 ## 16. Acceptance of this PRD
 
 The MVP is considered complete when all P0 requirements pass their checks, the milestone exit checks are met, and no known data-loss bug is open.
+
+**MVP completion, 2026-11-08 (owner):**
+- All P0 requirements passed the owner's manual checks in Chrome and Helium on macOS, milestone by milestone (M0 to M5).
+- All P1 requirements are built and passed: FR-25, FR-27 (narrowed scope), FR-43 and FR-44.
+- 155 unit tests pass. The production build has no host permissions and no content scripts.
+- No known bug loses saved data.
+
+**Not covered, carried forward:**
+- **End-to-end tests:** the Playwright suite in section 15 was not written. All in-browser checks were manual.
+- **Manual matrix:** only macOS was tested, on current Chrome and Helium. Windows and an older Chrome version were not tested.
+- **NFR-1:** operation times were measured in unit tests (under 50 ms at 100 folders and 1,000 pages). The 300 ms panel-open target was not measured in a browser; the owner reported no visible slowness with the 1,000-page sample.
+- **NFR-5:** color contrast was not measured with a tool.
+- **Live sync:** if another window deletes a folder while a row inside it is being renamed, the unsaved rename is dropped without a message.
+- **Dependencies:** `npm audit` reports 4 low-severity issues in development tools (`deepmerge`). The shipped extension has none.
+- **Deferred M3 review items:** listed in section 11.
